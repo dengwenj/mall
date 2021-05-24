@@ -2,46 +2,173 @@
   <div id="home">
     <!-- 上面的导航 -->
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
-    <!-- 轮播图 -->
-    <home-swiper :banners="banners"></home-swiper>
-    <!-- 推荐 -->
-    <recommend-view :recommend="recommend"></recommend-view>
+    <!-- 滚动的 -->
+    <scroll
+      class="content"
+      ref="scroll"
+      :probe-type="3"
+      @backTop="backTop"
+      :pull-up-load="true"
+    >
+      <!-- 轮播图 -->
+      <home-swiper :banners="banners"></home-swiper>
+      <!-- 推荐 -->
+      <recommend-view :recommend="recommend"></recommend-view>
+      <!-- 本周推荐 -->
+      <feature-view></feature-view>
+      <!-- TabControl 点击切换数据-->
+      <tab-control
+        :control="['流行', '新款', '精选']"
+        class="tab"
+        @item-click="itemClick"
+      ></tab-control>
+      <!-- 商品列表 -->
+      <goods-list :goodsList="showGoods"></goods-list>
+    </scroll>
+    <!-- 点击回到顶部 -->
+    <back-top @click.native="backTopClick" v-show="isShow"></back-top>
   </div>
 </template>
 
 <script>
-import NavBar from "components/common/navbar/NavBar";
+// home首页的子组件
 import HomeSwiper from "./childCops/HomeSwiper";
 import RecommendView from "./childCops/RecommendView";
-import { getHomeMultidata } from "network/home";
+import FeatureView from "./childCops/FeatureView";
+// 公共的组件
+import NavBar from "components/common/navbar/NavBar";
+import TabControl from "components/content/tabcontrol/TabControl";
+import GoodsList from "components/content/goods/GoodsList";
+import Scroll from "components/common/scroll/Scroll";
+import BackTop from "components/content/backTop/BackTop";
+// 网络请求数据
+import { getHomeMultidata, getHomeGoods } from "network/home";
 export default {
   data() {
     return {
       banners: [],
       recommend: [],
+      // 商品数据
+      goods: {
+        pop: { page: 0, list: [] },
+        new: { page: 0, list: [] },
+        sell: { page: 0, list: [] },
+      },
+      currentType: "pop",
+      isShow: false,
     };
   },
   // 注册组件
   components: {
-    NavBar,
     HomeSwiper,
     RecommendView,
+    FeatureView,
+    NavBar,
+    TabControl,
+    GoodsList,
+    Scroll,
+    BackTop,
   },
-  // 生命周期函数  创建了执行这个函数
+  // 生命周期函数  创建完就会执行这个函数
   created() {
     // 请求多个数据
-    getHomeMultidata().then((res) => {
-      // console.log(res);
-      this.banners = res.data.banner.list;
-      this.recommend = res.data.recommend.list;
+    this.getHomeMultidata();
+
+    // 请求商品数据
+    this.getHomeGoods("pop");
+    this.getHomeGoods("new");
+    this.getHomeGoods("sell");
+  },
+  mounted() {
+    // 监听item图片加载完成
+    this.$bus.$on("itemImgLoad", () => {
+      this.$refs.scroll.refresh();
     });
+  },
+  computed: {
+    showGoods() {
+      return this.goods[this.currentType].list;
+    },
+  },
+  methods: {
+    /* 
+    事件处理
+    */
+    //  子传父
+    itemClick(index) {
+      switch (index) {
+        case 0:
+          this.currentType = "pop";
+          break;
+        case 1:
+          this.currentType = "new";
+          break;
+        case 2:
+          this.currentType = "sell";
+          break;
+      }
+    },
+    backTopClick() {
+      // console.log(this.$refs.scroll);
+      // 这里就拿到了组件对象里面封装的方法
+      this.$refs.scroll.scrollTo(0, 0);
+    },
+    backTop(position) {
+      // console.log(position);
+      // Math.abs()绝对值
+      this.isShow = Math.abs(position.y) > 1000;
+    },
+    /* 
+      网络请的数据
+    */
+    // 请求多个数据
+    getHomeMultidata() {
+      getHomeMultidata().then((res) => {
+        // console.log(res);
+        this.banners = res.data.banner.list;
+        this.recommend = res.data.recommend.list;
+      });
+    },
+
+    // 请求商品数据
+    getHomeGoods(type) {
+      const page = this.goods[type].page + 1;
+      getHomeGoods(type, page).then((res) => {
+        // (...res.data.list)这个就是把里面的元素一个一个的取出来push到this.goods[type].list里面去
+        this.goods[type].list.push(...res.data.list);
+        this.goods[type].page = page;
+      });
+    },
   },
 };
 </script>
 
-<style>
+<style scoped>
+#home {
+  padding-top: 44px;
+  position: relative;
+  height: 100vh;
+}
 .home-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
   background-color: var(--color-tint);
   color: #fff;
+  z-index: 9999;
+}
+.tab {
+  position: sticky;
+  top: 44px;
+  z-index: 99999;
+}
+.content {
+  position: absolute;
+  top: 44px;
+  bottom: 49px;
+  left: 0;
+  right: 0;
+  /* overflow: hidden; */
 }
 </style>
