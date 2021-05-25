@@ -2,6 +2,14 @@
   <div id="home">
     <!-- 上面的导航 -->
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
+    <!-- 吸顶 -->
+    <tab-control
+      :control="['流行', '新款', '精选']"
+      class="tab"
+      @item-click="itemClick"
+      ref="tabcontrol1"
+      v-show="isFixed"
+    ></tab-control>
     <!-- 滚动的 -->
     <scroll
       class="content"
@@ -9,9 +17,10 @@
       :probe-type="3"
       @backTop="backTop"
       :pull-up-load="true"
+      @topLoad="loadMore"
     >
       <!-- 轮播图 -->
-      <home-swiper :banners="banners"></home-swiper>
+      <home-swiper :banners="banners" @imageLoad="imageLoad"></home-swiper>
       <!-- 推荐 -->
       <recommend-view :recommend="recommend"></recommend-view>
       <!-- 本周推荐 -->
@@ -21,6 +30,7 @@
         :control="['流行', '新款', '精选']"
         class="tab"
         @item-click="itemClick"
+        ref="tabcontrol2"
       ></tab-control>
       <!-- 商品列表 -->
       <goods-list :goodsList="showGoods"></goods-list>
@@ -43,6 +53,7 @@ import Scroll from "components/common/scroll/Scroll";
 import BackTop from "components/content/backTop/BackTop";
 // 网络请求数据
 import { getHomeMultidata, getHomeGoods } from "network/home";
+import { debounce } from "common/utils";
 export default {
   data() {
     return {
@@ -56,6 +67,9 @@ export default {
       },
       currentType: "pop",
       isShow: false,
+      offsetTop: 0,
+      isFixed: false,
+      saveY: 0,
     };
   },
   // 注册组件
@@ -69,6 +83,15 @@ export default {
     Scroll,
     BackTop,
   },
+  activated() {
+    this.$refs.scroll.scrollTo(0, this.saveY, 0);
+    this.$refs.scroll.refresh();
+  }, // 让home中的内容保持原来的位置
+  deactivated() {
+    // console.log(this.$refs.scroll.scroll.y);
+    // console.log(this.$refs.scroll);
+    this.saveY = this.$refs.scroll.getStartY();
+  },
   // 生命周期函数  创建完就会执行这个函数
   created() {
     // 请求多个数据
@@ -80,9 +103,11 @@ export default {
     this.getHomeGoods("sell");
   },
   mounted() {
+    //  防抖 不要让refresh非常频繁  默认的refresh非常的频繁 执行很多次
+    const refresh = debounce(this.$refs.scroll.refresh, 50);
     // 监听item图片加载完成
     this.$bus.$on("itemImgLoad", () => {
-      this.$refs.scroll.refresh();
+      refresh();
     });
   },
   computed: {
@@ -107,6 +132,9 @@ export default {
           this.currentType = "sell";
           break;
       }
+      // 这里是上面的要和下面的点击一直 点的是一样的
+      this.$refs.tabcontrol1.contentIndex = index;
+      this.$refs.tabcontrol2.contentIndex = index;
     },
     backTopClick() {
       // console.log(this.$refs.scroll);
@@ -116,7 +144,16 @@ export default {
     backTop(position) {
       // console.log(position);
       // Math.abs()绝对值
+      // 1 显示或隐藏右下角的图标
       this.isShow = Math.abs(position.y) > 1000;
+      // 2 把tabcontrol吸顶到顶部
+      this.isFixed = Math.abs(position.y) > this.offsetTop;
+    },
+    loadMore() {
+      this.getHomeGoods(this.currentType);
+    },
+    imageLoad() {
+      this.offsetTop = this.$refs.tabcontrol2.$el.offsetTop;
     },
     /* 
       网络请的数据
@@ -137,6 +174,9 @@ export default {
         // (...res.data.list)这个就是把里面的元素一个一个的取出来push到this.goods[type].list里面去
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page = page;
+
+        // 默认上拉加载只能执行一次  调用这个后就能执行很多次
+        this.$refs.scroll.finishPullUp();
       });
     },
   },
@@ -159,9 +199,8 @@ export default {
   z-index: 9999;
 }
 .tab {
-  position: sticky;
-  top: 44px;
-  z-index: 99999;
+  position: relative;
+  z-index: 999;
 }
 .content {
   position: absolute;

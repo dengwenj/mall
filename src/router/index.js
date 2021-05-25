@@ -13,6 +13,8 @@ const Category = () =>
   import ('views/category/Category')
 const Profile = () =>
   import ('views/profile/Profile')
+const Detail = () =>
+  import ('views/detail/Detail')
 
 // 创建路由实例
 
@@ -31,7 +33,10 @@ const routes = [{
 }, {
   path: '/profile',
   component: Profile
-}, ]
+}, {
+  path: '/detail/:iid',
+  component: Detail
+}]
 
 const router = new VueRouter({
   routes,
