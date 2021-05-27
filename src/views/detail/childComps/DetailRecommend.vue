@@ -1,11 +1,17 @@
 <template>
-  <div class="goods-list-item" @click="detailClick">
-    <img :src="goodsListItem.show.img" alt="" class="img" @load="itemload" />
-    <div class="bottom">
-      <p>{{ goodsListItem.title }}</p>
-      <div class="xiamian">
-        <span class="l">{{ goodsListItem.price }}</span>
-        <span class="r">{{ goodsListItem.cfav }}</span>
+  <div class="tj">
+    <div
+      class="goods-list-item"
+      v-for="item in recommend"
+      :key="item.tradeItemId"
+    >
+      <img :src="item.image" alt="" class="img" />
+      <div class="bottom">
+        <p>{{ item.title }}</p>
+        <div class="xiamian">
+          <span class="l">{{ item.price }}</span>
+          <span class="r">{{ item.cfav }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -14,26 +20,24 @@
 <script>
 export default {
   props: {
-    goodsListItem: {
-      type: Object,
-      default() {
-        return {};
+    recommend: {
+      type: Array,
+      defalut() {
+        return [];
       },
     },
   },
-  methods: {
-    itemload() {
-      this.$bus.$emit("itemImgLoad");
-    },
-    detailClick() {
-      // console.log(this.goodsListItem);
-      this.$router.push("/detail/" + this.goodsListItem.iid);
-    },
-  },
+  components: {},
 };
 </script>
 
-<style>
+<style scoped>
+.tj {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 3px;
+}
 .goods-list-item {
   position: relative;
   padding-bottom: 40px;

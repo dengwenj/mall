@@ -7,7 +7,7 @@
     <div class="er">
       <div class="zuo gt">
         <div class="xiaoliang">
-          <span class="shangmian">{{ shop.sells }}</span>
+          <span class="shangmian">{{ shop.sells | guolvqi }}</span>
           <span class="xiamian">总销量</span>
         </div>
         <div class="xiaoliang">
@@ -43,6 +43,16 @@ export default {
       default() {
         return {};
       },
+    },
+  },
+  // 过滤器
+  filters: {
+    guolvqi(value) {
+      let result = 0; // value = shop.sells
+      if (value > 10000) {
+        result = (value / 10000).toFixed(1) + "万";
+      }
+      return result;
     },
   },
 };
