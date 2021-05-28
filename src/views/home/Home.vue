@@ -50,10 +50,12 @@ import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabcontrol/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/common/scroll/Scroll";
-import BackTop from "components/content/backTop/BackTop";
 // 网络请求数据
 import { getHomeMultidata, getHomeGoods } from "network/home";
 import { debounce } from "common/utils";
+
+// 混入
+import { backTopMixin } from "common/mixin";
 export default {
   data() {
     return {
@@ -66,12 +68,12 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
-      isShow: false,
       offsetTop: 0,
       isFixed: false,
       saveY: 0,
     };
   },
+  mixins: [backTopMixin],
   // 注册组件
   components: {
     HomeSwiper,
@@ -81,7 +83,6 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop,
   },
   activated() {
     this.$refs.scroll.scrollTo(0, this.saveY, 0);
@@ -136,16 +137,13 @@ export default {
       this.$refs.tabcontrol1.contentIndex = index;
       this.$refs.tabcontrol2.contentIndex = index;
     },
-    backTopClick() {
-      // console.log(this.$refs.scroll);
-      // 这里就拿到了组件对象里面封装的方法
-      this.$refs.scroll.scrollTo(0, 0);
-    },
+
     backTop(position) {
       // console.log(position);
       // Math.abs()绝对值
       // 1 显示或隐藏右下角的图标
-      this.isShow = Math.abs(position.y) > 1000;
+      // 混入了
+      this.isShowChouQu(position);
       // 2 把tabcontrol吸顶到顶部
       this.isFixed = Math.abs(position.y) > this.offsetTop;
     },

@@ -33,6 +33,8 @@ export default {
   methods: {
     titleItemClick(index) {
       this.currentIndex = index;
+      // 子传父
+      this.$emit("titleClick", index);
     },
     leftClick() {
       this.$router.back();

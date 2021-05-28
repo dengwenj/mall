@@ -13,9 +13,10 @@
         <p>{{ commentInfo.content }}</p>
       </div>
       <div class="style">
+        <span class="date">{{ commentInfo.created | showDate }}</span>
         <span>{{ commentInfo.style }}</span>
       </div>
-      <div class="i">
+      <div class="i" v-if="commentInfo.images">
         <div class="ii" v-for="item in commentInfo.images" :key="item">
           <img :src="item" alt="" />
         </div>
@@ -25,6 +26,7 @@
 </template>
 
 <script>
+import { formatDate } from "common/utils";
 export default {
   props: {
     commentInfo: {
@@ -32,6 +34,14 @@ export default {
       default() {
         return {};
       },
+    },
+  },
+  filters: {
+    showDate(value) {
+      // 将时间戳转成date对象
+      const date = new Date(value * 1000);
+      // 将date进行格式化，转成对应的字符串
+      return formatDate(date, "yyyy-MM-dd hh:mm");
     },
   },
 };
@@ -81,6 +91,9 @@ export default {
   padding: 10px 0 0 20px;
   font-size: 14px;
   color: #c5c5c5;
+}
+.date {
+  margin-right: 5px;
 }
 .chengzi {
   padding-bottom: 20px;
