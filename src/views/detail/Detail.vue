@@ -36,7 +36,7 @@
       ></detail-recommend>
     </scroll>
     <!-- 底部 -->
-    <detail-bottom-bar></detail-bottom-bar>
+    <detail-bottom-bar @addToCart="addToCart"></detail-bottom-bar>
     <!-- 点击回到顶部 -->
     <back-top @click.native="backTopClick" v-show="isShow"></back-top>
   </div>
@@ -156,7 +156,22 @@ export default {
           this.$refs.nav.currentIndex = i;
         }
       }
+      // 混入
       this.isShowChouQu(position);
+    },
+
+    // 点击购物车
+    addToCart() {
+      // 1 获取购物车需要展示的信息
+      const product = {};
+      product.image = this.topImages[0];
+      product.title = this.goods.title;
+      product.desc = this.goods.desc;
+      product.price = this.goods.realPrice;
+      product.iid = this.iid;
+      // 2 将商品添加到购物车里
+      // this.$store.commit("addCart", product);
+      this.$store.dispatch("addCart", product);
     },
 
     // 发送请求
@@ -166,7 +181,7 @@ export default {
           const data = result.result;
           // 获取轮播图数据
           this.topImages = data.itemInfo.topImages;
-          console.log(result);
+          // console.log(result);
           // 获取商品信息
           this.goods = new Goods(
             data.itemInfo,
@@ -192,7 +207,7 @@ export default {
       // 推荐
       recommend().then((result) => {
         this.recommend = result.data.list;
-        console.log(result);
+        // console.log(result);
       });
     },
   },

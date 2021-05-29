@@ -15,14 +15,20 @@
       </div>
     </div>
     <div class="liangbian bottom-right">
-      <span class="gwc">加入购物车</span>
+      <span class="gwc" @click="addToCart">加入购物车</span>
       <span class="gm">购买</span>
     </div>
   </div>
 </template>
 
 <script>
-export default {};
+export default {
+  methods: {
+    addToCart() {
+      this.$emit("addToCart");
+    },
+  },
+};
 </script>
 
 <style scoped>
