@@ -39,6 +39,7 @@
     <detail-bottom-bar @addToCart="addToCart"></detail-bottom-bar>
     <!-- 点击回到顶部 -->
     <back-top @click.native="backTopClick" v-show="isShow"></back-top>
+    <!-- <toast :message="message" :show="show"></toast> -->
   </div>
 </template>
 
@@ -53,11 +54,15 @@ import DetailCommentInfo from "./childComps/DetailCommentInfo";
 import DetailRecommend from "./childComps/DetailRecommend";
 import DetailBottomBar from "./childComps/DetailBottomBar";
 import Scroll from "components/common/scroll/Scroll";
+import Toast from "components/common/toast/Toast";
 
 import { debounce } from "common/utils";
 
 // 混入
 import { backTopMixin } from "common/mixin";
+
+// mapActions 映射关系
+import { mapActions } from "vuex";
 
 // 网络请求
 import {
@@ -86,6 +91,8 @@ export default {
       recommend: [],
       themeTopYs: [],
       getThemeTopY: null,
+      // message: "",
+      // show: false,
     };
   },
   mixins: [backTopMixin],
@@ -100,6 +107,7 @@ export default {
     DetailRecommend,
     DetailBottomBar,
     Scroll,
+    Toast,
   },
   created() {
     // this.$route处于活跃的那个路由  重新执行created重新获取新的iid
@@ -125,6 +133,7 @@ export default {
     }, 100);
   },
   methods: {
+    ...mapActions(["addCart"]),
     imgLoad() {
       // 刷新
       this.$refs.scroll.refresh();
@@ -171,7 +180,20 @@ export default {
       product.iid = this.iid;
       // 2 将商品添加到购物车里
       // this.$store.commit("addCart", product);
-      this.$store.dispatch("addCart", product);
+      // this.$store.dispatch("addCart", product).then((res) => {
+      //   console.log(res);
+      // });
+      // 用的mapActions 等价于上面
+      this.addCart(product).then((res) => {
+        // this.message = res;
+        // this.show = true;
+        // setTimeout(() => {
+        //   this.message = "";
+        //   this.show = false;
+        // }, 1500);
+        // console.log(res);
+        this.$toast.show(res, 1500);
+      });
     },
 
     // 发送请求
@@ -199,7 +221,7 @@ export default {
           );
           // 评论
           this.commentInfo = data.rate.list[0];
-          console.log(this.commentInfo);
+          // console.log(this.commentInfo);
         })
         .catch((err) => {});
     },
